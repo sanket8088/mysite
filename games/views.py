@@ -4,7 +4,7 @@ import json
 from utils.constant import USERNAME, PASSWORD
 from django.views.generic import ListView
 from django.views import View
-from games.models import School
+from games.models import School, Courses
 
 # Create your views here.
 
@@ -156,4 +156,44 @@ class AddSchool(View):
             resp.append({"id" : data.id, "name" : data.name,"address" : data.address})
         return JsonResponse({"data" : resp})
 
-        
+
+class UpdateSchool(View):
+
+    # CRUD
+
+    def put(self, request, school_id):
+        user_data = json.loads(request.body)
+        school_name = user_data.get("school_name", None)
+        address = user_data.get("address",None)
+        contact = user_data.get("contact", None)
+        if school_name:
+            School.objects.filter(id = school_id).update(name=school_name)
+        if address:
+            School.objects.filter(id = school_id).update(address=address)
+        if contact:
+            School.objects.filter(id = school_id).update(contact_number=contact)
+        return JsonResponse({"data" : "Successfully updated"})
+    
+    def delete(self, request, school_id):
+        School.objects.filter(id = school_id).delete()
+        return JsonResponse({"data" : "Deleted successfully"})
+
+
+class AddCourses(View):
+
+    # CRUD
+
+    def post(self, request, school_id):
+        user_data = json.loads(request.body)
+        name = user_data.get("name", None)
+        strength = user_data.get("strength",None)
+        duration = user_data.get("duration", None)
+        qs = Courses.objects.create(name = name, strength= strength, duration = duration, school_id = school_id)
+        return JsonResponse({"id" : qs.id, "name" : qs.name})
+    
+    def get(self, request, school_id):
+        qs = Courses.objects.filter(school_id = school_id)
+        resp = []
+        for data in qs:
+            resp.append({"id" : data.id, "name" : data.name, "duration" : data.duration, "strength" : data.strength})
+        return JsonResponse({"data" : resp})
